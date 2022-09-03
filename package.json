@@ -1,0 +1,24 @@
+{
+  "name": "Secondhand Back-End",
+  "version": "1.0.0",
+  "description": "Secondhand Back-End",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "Alonso Briones",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1",
+    "express-validator": "^6.14.2",
+    "mongodb": "^4.9.0",
+    "mongoose": "^6.5.4",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
+}
