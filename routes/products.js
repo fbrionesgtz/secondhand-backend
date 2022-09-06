@@ -10,14 +10,36 @@ router.get("/", productsController.getProducts);
 // POST /products/
 router.post(
   "/",
-  [
-    body("title").trim().isLength({ min: 5 }),
-    body("description").trim().isLength({ min: 5 }),
-  ],
+  // [
+  //   body("title").trim().isLength({ min: 1 }),
+  //   () => {
+  //     return body("price") >= 0;
+  //   },
+  //   () => {
+  //     return body("image") ? true : false;
+  //   },
+  //   body("description").trim().isLength({ min: 30 }),
+  // ],
   productsController.postProduct
 );
 
-// GET /product/:product
 router.get("/:productId", productsController.getProduct);
+
+router.put(
+  "/:productId",
+  // [
+  //   body("title").trim().isLength({ min: 1 }),
+  //   () => {
+  //     return body("price") >= 0;
+  //   },
+  //   () => {
+  //     return body("image") ? true : false;
+  //   },
+  //   body("description").trim().isLength({ min: 30 }),
+  // ],
+  productsController.updateProduct
+);
+
+router.delete("/:productId", productsController.deleteProduct);
 
 module.exports = router;
