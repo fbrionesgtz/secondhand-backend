@@ -3,40 +3,36 @@ const { body } = require("express-validator");
 
 const router = express.Router();
 const productsController = require("../controllers/products");
+const isAuth = require("../middleware/is-auth");
 
 // GET /products/
-router.get("/", productsController.getProducts);
+router.get("/", isAuth, productsController.getProducts);
 
 // POST /products/
 router.post(
   "/",
-  // [
-  //   body("title").trim().isLength({ min: 1 }),
-  //   () => {
-  //     return body("price") >= 0;
-  //   },
-  //   () => {
-  //     return body("image") ? true : false;
-  //   },
-  //   body("description").trim().isLength({ min: 30 }),
-  // ],
+  isAuth,
+  [
+    body("title").not().isEmpty(),
+    body("price").not().isEmpty().isFloat({ min: 0 }),
+    // body("productImage").not().isEmpty(),
+    body("description").trim().isLength({ min: 30 }),
+  ],
   productsController.postProduct
 );
 
-router.get("/:productId", productsController.getProduct);
+router.get("/:productId", isAuth, productsController.getProduct);
 
 router.put(
   "/:productId",
-  // [
-  //   body("title").trim().isLength({ min: 1 }),
-  //   () => {
-  //     return body("price") >= 0;
-  //   },
-  //   () => {
-  //     return body("image") ? true : false;
-  //   },
-  //   body("description").trim().isLength({ min: 30 }),
-  // ],
+  isAuth,
+  [
+    body("title").not().isEmpty(),
+    body("category").not().isEmpty(),
+    body("price").not().isEmpty().isFloat({ min: 0 }),
+    // body("productImage").not().isEmpty(),
+    body("description").trim().isLength({ min: 30 }),
+  ],
   productsController.updateProduct
 );
 

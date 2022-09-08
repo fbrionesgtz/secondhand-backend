@@ -15,14 +15,26 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    password: {
+      type: String,
+      required: true,
+    },
     phoneNumber: {
       type: Number,
       required: true,
     },
-    image: {
+    profileImage: {
       type: String,
       required: true,
     },
+    products: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );
+
+module.exports = mongoose.model("User", userSchema);

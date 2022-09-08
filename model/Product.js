@@ -19,12 +19,13 @@ const projectSchema = new Schema(
       type: String,
       required: true,
     },
-    image: {
+    productImage: {
       type: String,
       required: true,
     },
     user: {
-      type: Object,
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },

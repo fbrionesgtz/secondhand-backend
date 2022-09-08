@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { validationResult } = require("express-validator");
 const Product = require("../model/Product");
+const User = require("../model/User");
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -35,7 +36,7 @@ exports.postProduct = (req, res, next) => {
 
   const title = req.body.title;
   const category = req.body.category;
-  const image = req.file.path.replace("\\", "/");
+  const productImage = req.file.path.replace("\\", "/");
   const price = req.body.price;
   const description = req.body.description;
 
@@ -44,13 +45,20 @@ exports.postProduct = (req, res, next) => {
     category: category,
     price: price,
     description: description,
-    image: image,
-    user: { name: "Alonso Briones" },
+    productImage: productImage,
+    user: req.userId,
   });
 
   product
     .save()
-    .then((product) => {
+    .then(() => {
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.products.push(product);
+      return user.save();
+    })
+    .then((user) => {
       res.status(201).json({
         message: "Product created",
         product,
@@ -91,9 +99,6 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.updateProduct = (req, res, next) => {
-  console.log(req.body);
-  console.log(req.file);
-
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Validation failed, entered data is incorrect.");
@@ -106,13 +111,13 @@ exports.updateProduct = (req, res, next) => {
   const category = req.body.category;
   const price = req.body.price;
   const description = req.body.description;
-  let image = req.body.image;
+  let productImage = req.body.image;
 
   if (req.file) {
-    image = req.file.path.replace("\\", "/");
+    productImage = req.file.path.replace("\\", "/");
   }
 
-  if (!image) {
+  if (!productImage) {
     const error = new Error("No image provided");
     error.statusCode = 422;
     throw error;
@@ -126,17 +131,15 @@ exports.updateProduct = (req, res, next) => {
         throw error;
       }
 
-      if (image != product.image) {
-        clearImage(product.image);
+      if (productImage != product.productImage) {
+        clearImage(product.productImage);
       }
-
-      console.log(image);
 
       product.title = title;
       product.category = category;
       product.price = price;
       product.description = description;
-      product.image = image;
+      product.productImage = productImage;
 
       return product.save();
     })
@@ -158,11 +161,9 @@ exports.updateProduct = (req, res, next) => {
 
 const clearImage = (imagePath) => {
   imagePath = path.join(__dirname, "..", imagePath);
-  if (fs.existsSync(imagePath)) {
-    fs.unlink(imagePath, (err) => {
-      console.log(err);
-    });
-  }
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
 };
 
 exports.deleteProduct = (req, res, next) => {
@@ -176,8 +177,14 @@ exports.deleteProduct = (req, res, next) => {
         throw error;
       }
 
+      if (product.user !== req.userId) {
+        const error = new Error("Not authorized.");
+        error.statusCode = 403;
+        throw error;
+      }
+
       //Check user login
-      clearImage(product.image);
+      clearImage(product.productImage);
       return Product.findByIdAndRemove(productId);
     })
     .then((result) => {
