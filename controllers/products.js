@@ -198,3 +198,19 @@ exports.deleteProduct = (req, res, next) => {
       next(err);
     });
 };
+
+exports.getUserProducts = (req, res, next) => {
+  Product.find({ user: req.userId })
+    .then((products) => {
+      res.status(200).json({
+        products,
+      });
+    })
+    .catch((err) => {
+      if (!err.satusCode) {
+        err.statusCode = 500;
+      }
+
+      next(err);
+    });
+};

@@ -11,8 +11,6 @@ const authRoutes = require("./routes/auth");
 
 const app = express();
 
-app.use(cors());
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "images");
@@ -35,12 +33,14 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+app.use(cors());
+
 app.use(bodyParser.json()); // application/json
 app.use(multer({ storage: storage, fileFilter: fileFilter }).single("image"));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-app.use("/products", productRoutes);
 app.use("/auth", authRoutes);
+app.use("/products", productRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

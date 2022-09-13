@@ -21,6 +21,8 @@ router.post(
   productsController.postProduct
 );
 
+router.get("/user-products", isAuth, productsController.getUserProducts);
+
 router.get("/:productId", isAuth, productsController.getProduct);
 
 router.put(
@@ -36,6 +38,6 @@ router.put(
   productsController.updateProduct
 );
 
-router.delete("/:productId", productsController.deleteProduct);
+router.delete("/:productId", isAuth, productsController.deleteProduct);
 
 module.exports = router;

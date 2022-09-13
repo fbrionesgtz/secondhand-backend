@@ -92,3 +92,34 @@ exports.logIn = (req, res, next) => {
       next(err);
     });
 };
+
+exports.getUser = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      res.status(200).json({
+        message: "User fetched",
+        user: {
+          _id: user._id,
+          profileImage: user.profileImage,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          products: user.products,
+        },
+      });
+    })
+    .catch((err) => {
+      if (!err.satusCode) {
+        err.statusCode = 500;
+      }
+
+      next(err);
+    });
+};
