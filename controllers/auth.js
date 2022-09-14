@@ -1,4 +1,6 @@
 const User = require("../model/User");
+const path = require("path");
+const fs = require("fs");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -52,6 +54,14 @@ exports.signUp = (req, res, next) => {
 };
 
 exports.logIn = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed");
+    error.statusCode = 422;
+    error.data = error.array;
+    throw error;
+  }
+
   const email = req.body.email;
   const password = req.body.password;
   let currUser;
@@ -105,8 +115,8 @@ exports.getUser = (req, res, next) => {
       res.status(200).json({
         message: "User fetched",
         user: {
-          _id: user._id,
           profileImage: user.profileImage,
+          coverImage: user.coverImage,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -122,4 +132,68 @@ exports.getUser = (req, res, next) => {
 
       next(err);
     });
+};
+
+exports.updateUser = (req, res, next) => {
+  if (!req.file) {
+    const error = new Error("No image provided.");
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const email = req.body.email;
+  const phoneNumber = req.body.phoneNumber;
+  const profileImage = req.file.path.replace("\\", "/");
+  const coverImage = req.file.path.replace("\\", "/");
+
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      if (user.coverImage) {
+        clearImage(user.coverImage);
+      }
+
+      user.firstName = firstName ? firstName : user.firstName;
+      user.lastName = lastName ? lastName : user.lastName;
+      user.email = email ? email : user.email;
+      user.phoneNumber = phoneNumber ? phoneNumber : user.phoneNumber;
+      user.profileImage = profileImage ? profileImage : user.profileImage;
+      user.coverImage = coverImage ? coverImage : user.coverImage;
+      return user.save();
+    })
+    .then((user) => {
+      res.status(200).json({
+        message: "User updated",
+        user: {
+          profileImage: user.profileImage,
+          coverImage: user.coverImage,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          products: user.products,
+        },
+      });
+    })
+    .catch((err) => {
+      if (!err.satusCode) {
+        err.statusCode = 500;
+      }
+
+      next(err);
+    });
+};
+
+const clearImage = (imagePath) => {
+  imagePath = path.join(__dirname, "..", imagePath);
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
 };

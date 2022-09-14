@@ -27,6 +27,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    coverImage: {
+      type: String,
+      default: null,
+    },
     products: [
       {
         type: Schema.Types.ObjectId,

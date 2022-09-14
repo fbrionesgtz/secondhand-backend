@@ -144,7 +144,6 @@ exports.updateProduct = (req, res, next) => {
       return product.save();
     })
     .then((product) => {
-      console.log(product);
       res.status(200).json({
         message: "Product updated",
         product,
@@ -157,13 +156,6 @@ exports.updateProduct = (req, res, next) => {
 
       next(err);
     });
-};
-
-const clearImage = (imagePath) => {
-  imagePath = path.join(__dirname, "..", imagePath);
-  fs.unlink(imagePath, (err) => {
-    console.log(err);
-  });
 };
 
 exports.deleteProduct = (req, res, next) => {
@@ -213,4 +205,11 @@ exports.getUserProducts = (req, res, next) => {
 
       next(err);
     });
+};
+
+const clearImage = (imagePath) => {
+  imagePath = path.join(__dirname, "..", imagePath);
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
 };
