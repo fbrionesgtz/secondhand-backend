@@ -39,4 +39,6 @@ router.put(
 
 router.delete("/:productId", isAuth, productsController.deleteProduct);
 
+router.get("/owner/:productId", isAuth, productsController.getProductOwner);
+
 module.exports = router;

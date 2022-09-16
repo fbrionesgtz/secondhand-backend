@@ -145,7 +145,6 @@ exports.updateUser = (req, res, next) => {
   const lastName = req.body.lastName;
   const email = req.body.email;
   const phoneNumber = req.body.phoneNumber;
-  const profileImage = req.file.path.replace("\\", "/");
   const coverImage = req.file.path.replace("\\", "/");
 
   User.findById(req.userId)
@@ -164,7 +163,6 @@ exports.updateUser = (req, res, next) => {
       user.lastName = lastName ? lastName : user.lastName;
       user.email = email ? email : user.email;
       user.phoneNumber = phoneNumber ? phoneNumber : user.phoneNumber;
-      user.profileImage = profileImage ? profileImage : user.profileImage;
       user.coverImage = coverImage ? coverImage : user.coverImage;
       return user.save();
     })
@@ -172,7 +170,6 @@ exports.updateUser = (req, res, next) => {
       res.status(200).json({
         message: "User updated",
         user: {
-          profileImage: user.profileImage,
           coverImage: user.coverImage,
           firstName: user.firstName,
           lastName: user.lastName,

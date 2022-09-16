@@ -46,7 +46,7 @@ exports.postProduct = (req, res, next) => {
     price: price,
     description: description,
     productImage: productImage,
-    user: req.userId,
+    owner: req.userId,
   });
 
   product
@@ -169,7 +169,7 @@ exports.deleteProduct = (req, res, next) => {
         throw error;
       }
 
-      if (product.user !== req.userId) {
+      if (product.owner !== req.userId) {
         const error = new Error("Not authorized.");
         error.statusCode = 403;
         throw error;
@@ -192,10 +192,50 @@ exports.deleteProduct = (req, res, next) => {
 };
 
 exports.getUserProducts = (req, res, next) => {
-  Product.find({ user: req.userId })
+  Product.find({ owner: req.userId })
     .then((products) => {
       res.status(200).json({
         products,
+      });
+    })
+    .catch((err) => {
+      if (!err.satusCode) {
+        err.statusCode = 500;
+      }
+
+      next(err);
+    });
+};
+
+exports.getProductOwner = (req, res, next) => {
+  const productId = req.params.productId;
+
+  Product.findById(productId)
+    .then((product) => {
+      if (!product) {
+        const error = new Error("Product not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      return User.findById(product.owner);
+    })
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      res.status(200).json({
+        message: "Product owner found.",
+        owner: {
+          profileImage: user.profileImage,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+        },
       });
     })
     .catch((err) => {
