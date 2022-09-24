@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const Product = require("../model/Product");
 const path = require("path");
 const fs = require("fs");
 const { validationResult } = require("express-validator");
@@ -104,7 +105,9 @@ exports.logIn = (req, res, next) => {
 };
 
 exports.getUser = (req, res, next) => {
-  User.findById(req.userId)
+  const userId = req.params.userId ? req.params.userId : req.userId;
+  let currUser = {};
+  User.findById(userId)
     .then((user) => {
       if (!user) {
         const error = new Error("User not found.");
@@ -112,18 +115,22 @@ exports.getUser = (req, res, next) => {
         throw error;
       }
 
-      res.status(200).json({
-        message: "User fetched",
-        user: {
-          profileImage: user.profileImage,
-          coverImage: user.coverImage,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          phoneNumber: user.phoneNumber,
-          products: user.products,
-        },
-      });
+      currUser = {
+        _id: user._id,
+        profileImage: user.profileImage,
+        coverImage: user.coverImage,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+      };
+
+      return Product.find({ owner: userId });
+    })
+    .then((products) => {
+      res
+        .status(200)
+        .json({ message: "User fetched.", user: { ...currUser, products } });
     })
     .catch((err) => {
       if (!err.satusCode) {

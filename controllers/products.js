@@ -60,7 +60,7 @@ exports.postProduct = (req, res, next) => {
     })
     .then((user) => {
       res.status(201).json({
-        message: "Product created",
+        message: "Product created.",
         product,
       });
     })
@@ -169,7 +169,7 @@ exports.deleteProduct = (req, res, next) => {
         throw error;
       }
 
-      if (product.owner !== req.userId) {
+      if (product.owner.toString() !== req.userId.toString()) {
         const error = new Error("Not authorized.");
         error.statusCode = 403;
         throw error;
@@ -181,22 +181,6 @@ exports.deleteProduct = (req, res, next) => {
     })
     .then((result) => {
       res.status(200).json({ message: "Product deleted." });
-    })
-    .catch((err) => {
-      if (!err.satusCode) {
-        err.statusCode = 500;
-      }
-
-      next(err);
-    });
-};
-
-exports.getUserProducts = (req, res, next) => {
-  Product.find({ owner: req.userId })
-    .then((products) => {
-      res.status(200).json({
-        products,
-      });
     })
     .catch((err) => {
       if (!err.satusCode) {
@@ -230,7 +214,9 @@ exports.getProductOwner = (req, res, next) => {
       res.status(200).json({
         message: "Product owner found.",
         owner: {
+          _id: user._id,
           profileImage: user.profileImage,
+          coverImage: user.coverImage,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,

@@ -20,8 +20,6 @@ router.post(
   productsController.postProduct
 );
 
-router.get("/user-products", isAuth, productsController.getUserProducts);
-
 router.get("/:productId", isAuth, productsController.getProduct);
 
 router.put(

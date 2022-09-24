@@ -17,6 +17,7 @@ module.exports = (req, res, next) => {
     );
   } catch (err) {
     err.statusCode = 500;
+    err.message = "Session expired.";
     throw err;
   }
 
