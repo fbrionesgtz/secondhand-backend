@@ -29,7 +29,6 @@ router.put(
     body("title").not().isEmpty(),
     body("category").not().isEmpty(),
     body("price").not().isEmpty().isFloat({ min: 0 }),
-    // body("productImage").not().isEmpty(),
     body("description").trim().isLength({ min: 30 }),
   ],
   productsController.updateProduct

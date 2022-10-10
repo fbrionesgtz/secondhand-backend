@@ -7,6 +7,7 @@ const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 
 const productRoutes = require("./routes/products");
+const messageRoutes = require("./routes/messages");
 const authRoutes = require("./routes/auth");
 
 const app = express();
@@ -41,6 +42,7 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
+app.use("/messages", messageRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
