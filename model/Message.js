@@ -19,9 +19,14 @@ const messageSchema = new Schema(
           type: String,
           required: true,
         },
+        sender: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
         sentAt: {
           type: Date,
-          default: Date.now(),
+          required: true,
         },
       },
     ],

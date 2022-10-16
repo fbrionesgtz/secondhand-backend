@@ -13,6 +13,7 @@ exports.sendMessage = (req, res, next) => {
 
   const recipientId = req.params.recipientId;
   const message = req.body.message;
+  const sentAt = req.body.sentAt;
 
   Message.findOne({
     sender: req.userId,
@@ -23,18 +24,27 @@ exports.sendMessage = (req, res, next) => {
         const newConvo = new Message({
           sender: req.userId,
           recipient: recipientId,
-          messages: [{ content: message }],
+          messages: [{ content: message, sender: req.userId, sentAt: sentAt }],
         });
 
         return newConvo.save();
       }
 
-      convo.messages = [...convo.messages, { content: message }];
+      convo.messages = [
+        ...convo.messages,
+        { content: message, sender: req.userId, sentAt: sentAt },
+      ];
 
       return convo.save();
     })
     .then((convo) => {
-      res.status(200).json({ message: "Message sent.", convo });
+      res.status(200).json({
+        message: {
+          _id: convo.messages[convo.messages.length - 1]._id,
+          content: message,
+          sender: req.userId,
+        },
+      });
     })
     .catch((err) => {
       if (!err.satusCode) {
@@ -48,18 +58,33 @@ exports.sendMessage = (req, res, next) => {
 exports.getConvo = (req, res, next) => {
   const recipientId = req.params.recipientId;
 
-  Message.findOne({
-    sender: req.userId,
-    recipient: recipientId,
+  Message.find({
+    $or: [
+      { sender: req.userId, recipient: recipientId },
+      { sender: recipientId, recipient: req.userId },
+    ],
   })
+    .select("messages -_id")
     .then((convo) => {
       if (!convo) {
         const error = new Error("No conversation found");
-        error.statusCode = 401;
+        error.statusCode = 404;
         throw error;
       }
 
-      res.status(200).json({ message: "Conversation found", convo });
+      const messages =
+        convo[0] && convo[1]
+          ? [...convo[0].messages, ...convo[1].messages].sort((a, b) => {
+              return a.sentAt - b.sentAt;
+            })
+          : convo[0] && !convo[1]
+          ? [...convo[0].messages]
+          : !convo[0] && convo[1] && [...convo[1].messages];
+
+      res.status(200).json({
+        message: "Conversation found",
+        convo: { messages },
+      });
     })
     .catch((err) => {
       if (!err.satusCode) {
@@ -71,23 +96,32 @@ exports.getConvo = (req, res, next) => {
 };
 
 exports.getUserConvos = (req, res, next) => {
-  Message.find({ sender: req.userId })
-    .select("recipient -_id")
-    .then((recipients) => {
-      if (!recipients) {
-        res
+  Message.find({ $or: [{ sender: req.userId }, { recipient: req.userId }] })
+    .select("recipient sender -_id")
+    .then((users) => {
+      if (!users) {
+        return res
           .status(200)
           .json({ message: "User does't have conversations yet." });
       }
 
-      const rescipientsIds = recipients.map((r) => {
-        return r.recipient;
+      const userIds = users.map((user) => {
+        if (user.recipient.toString() !== req.userId) {
+          return user.recipient.toString();
+        }
+        return user.sender.toString();
       });
 
-      User.find({ _id: { $in: rescipientsIds } })
+      User.find()
         .select("firstName lastName profileImage")
         .then((users) => {
-          res.status(200).json({ message: "Conversations found.", users });
+          const convos = users.filter((user) => {
+            return userIds.includes(user._id.toString());
+          });
+
+          res
+            .status(200)
+            .json({ message: "Conversations found.", allUsers: users, convos });
         })
         .catch((err) => {
           next(err);
